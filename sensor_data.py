@@ -30,7 +30,7 @@ try:
 
                 cursor = dbconn.cursor()
                 cursor.execute(
-                    "INSERT INTO sensor_log (temperature, led_status, fan_status) VALUES (%s, %s, %s)",
+                    "INSERT INTO sensor_data (temperature, led_status, fan_status) VALUES (%s, %s, %s)",
                     (temp, led_status, fan_status)
                 )
                 dbconn.commit()
