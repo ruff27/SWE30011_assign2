@@ -1,53 +1,41 @@
-from flask import Flask, render_template, redirect, url_for
-import pymysql
 import serial
+import pymysql
 
-app = Flask(__name__)
+device = '/dev/ttyACM0'
+arduino = serial.Serial(device, 9600)
 
-# Arduino serial device path
-device = '/dev/ttyACM0'  # Update if needed
 try:
-    arduino = serial.Serial(device, 9600, timeout=1)
-    print(f"Connected to Arduino on {device}")
-except:
-    arduino = None
-    print("Arduino not connected")
+    dbconn = pymysql.connect(
+        host="localhost",
+        user="pi",
+        password="",
+        database="env_db"
+    )
+    print("Connected to Arduino on", device)
+    print("Connected to database.")
 
-def get_latest_data():
-    try:
-        dbconn = pymysql.connect(
-            host="localhost",
-            user="pi",
-            password="",
-            database="env_db"
-        )
-        cursor = dbconn.cursor()
-        cursor.execute(
-            "SELECT temperature, led_status, fan_status, timestamp FROM sensor_log ORDER BY id DESC LIMIT 5"
-        )
-        rows = cursor.fetchall()
-        cursor.close()
-        return rows
-    except Exception as e:
-        print(f"DB error: {e}")
-        return []
+    while True:
+        data = arduino.readline().decode('utf-8').strip()
 
-@app.route("/")
-def index():
-    data = get_latest_data()
-    return render_template("index.html", sensor_data=data)
+        if data.startswith("Temp:"):
+            # Expected format: Temp: 25.42 °C | LED: GREEN | Fan: ON
+            parts = data.split("|")
+            temp = float(parts[0].split(":")[1].strip().split(" ")[0])
+            led_status = parts[1].split(":")[1].strip()
+            fan_status = parts[2].split(":")[1].strip()
 
-@app.route("/fan/on")
-def fan_on():
-    if arduino:
-        arduino.write(b"FAN_ON\n")
-    return redirect(url_for('index'))
+            cursor = dbconn.cursor()
+            cursor.execute(
+                "INSERT INTO sensor_log (temperature, led_status, fan_status) VALUES (%s, %s, %s)",
+                (temp, led_status, fan_status)
+            )
+            dbconn.commit()
+            cursor.close()
+            print(f"Inserted: Temp={temp}, LED={led_status}, Fan={fan_status}")
 
-@app.route("/fan/off")
-def fan_off():
-    if arduino:
-        arduino.write(b"FAN_OFF\n")
-    return redirect(url_for('index'))
+except pymysql.MySQLError as e:
+    print("Database error:", e)
 
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8080)
+finally:
+    if dbconn:
+        dbconn.close()
