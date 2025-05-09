@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Smart Environment Monitor Dashboard</title>
+    <title>Environment Monitor</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,9 +15,14 @@
             color: #333;
             padding: 20px 0;
         }
+        .status {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
         table {
             border-collapse: collapse;
-            width: 80%;
+            width: 60%;
             margin: 0 auto;
             background-color: #fff;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -62,35 +67,30 @@
 </head>
 <body>
 
-    <h1>Smart Environment Monitor Dashboard</h1>
+    <h1>Environment Monitor</h1>
+
+    <div class="status">
+        Fan Status: <strong style="color: {{ 'green' if fan_status == 'ON' else 'red' }}">{{ fan_status or 'Unknown' }}</strong>
+    </div>
 
     <table>
         <tr>
-            <th>ID</th>
             <th>Temperature (°C)</th>
-            <th>Potentiometer</th>
-            <th>Button State</th>
             <th>Timestamp</th>
         </tr>
         {% for row in data %}
         <tr>
             <td>{{ row[0] }}</td>
             <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
-            <td>{{ row[3] }}</td>
-            <td>{{ row[4] }}</td>
         </tr>
         {% endfor %}
     </table>
 
     <div class="button-container">
-        <form action="/control" method="POST">
+        <form action="/" method="POST">
             <button type="submit" name="action" value="fan_on" class="control-button">Turn Fan ON</button>
             <button type="submit" name="action" value="fan_off" class="control-button">Turn Fan OFF</button>
         </form>
-    </div>
-    <div style="text-align: center; font-size: 18px; margin: 20px;">
-        Fan Status: <strong style="color: {{ 'green' if fan_status == 'ON' else 'red' }}">{{ fan_status or 'Unknown' }}</strong>
     </div>
 </body>
 </html>
