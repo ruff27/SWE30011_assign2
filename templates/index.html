@@ -3,17 +3,66 @@
 <head>
   <title>Smart Environment Dashboard</title>
   <style>
-    body { font-family: Arial; background-color: #f8f9fa; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #2B7B8C; color: white; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f9;
+      padding: 30px;
+      color: #333;
+    }
+    h2 {
+      color: #2B7B8C;
+    }
+    .button-group {
+      margin-bottom: 20px;
+    }
+    .button-group a {
+      text-decoration: none;
+      margin-right: 10px;
+    }
+    .button-group button {
+      padding: 10px 20px;
+      background-color: #2B7B8C;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .button-group button:hover {
+      background-color: #215c6a;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background-color: #2B7B8C;
+      color: white;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
   </style>
 </head>
 <body>
+
   <h2>IoT Smart Environment Dashboard</h2>
-  <div style="margin-bottom: 20px;">
-    <a href="/fan/on"><button style="padding: 10px;">Turn Fan ON</button></a>
-    <a href="/fan/off"><button style="padding: 10px;">Turn Fan OFF</button></a>
+
+  <div class="button-group">
+    <a href="/fan/on"><button>Turn Fan ON</button></a>
+    <a href="/fan/off"><button>Turn Fan OFF</button></a>
   </div>
 
   <table>
@@ -32,5 +81,6 @@
     </tr>
     {% endfor %}
   </table>
+
 </body>
 </html>
