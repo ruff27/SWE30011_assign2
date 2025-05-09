@@ -9,7 +9,7 @@ const int fanPin = 9;                // Fan control pin
 const float resistorValue = 4700.0;      // Fixed resistor value (Ω)
 const float thermistorNominal = 10000.0; // Thermistor resistance at 25°C (Ω)
 const float beta = 3950.0;               // Beta coefficient of thermistor
-const float tempAlertThreshold = 25.0;   // Temperature to trigger alert LED
+const float tempAlertThreshold = 24.0;   // Temperature to trigger alert LED
 
 bool remoteFanControl = false;        // Flask control flag
 bool remoteFanState = false;          // Flask fan ON/OFF state
@@ -48,7 +48,7 @@ void loop() {
   }
   prevButtonState = !buttonPressed ? HIGH : LOW;
 
-  delay(3000); // Small delay for reading stability
+  delay(2000);
 
   // Temperature reading using Steinhart-Hart equation
   int tempSensorValue = analogRead(tempPin);

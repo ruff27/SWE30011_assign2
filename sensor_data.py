@@ -19,9 +19,8 @@ try:
         data = arduino.readline().decode('utf-8').strip()
 
         if data.startswith("Temp:"):
-            print(data)  # Show same output as Arduino
+            print(data)
 
-            # Example: Temp: 25.42 °C | LED: GREEN | Fan: ON
             try:
                 parts = data.split("|")
                 temp = float(parts[0].split(":")[1].strip().split(" ")[0])
