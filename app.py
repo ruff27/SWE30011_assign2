@@ -23,7 +23,7 @@ def get_latest_data():
         )
         cursor = dbconn.cursor()
         cursor.execute(
-            "SELECT temperature, led_status, fan_status, timestamp FROM sensor_log ORDER BY id DESC LIMIT 5"
+            "SELECT temperature, led_status, fan_status, timestamp FROM sensor_data ORDER BY id DESC LIMIT 5"
         )
         rows = cursor.fetchall()
         cursor.close()
