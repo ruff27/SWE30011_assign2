@@ -89,10 +89,8 @@
             <button type="submit" name="action" value="fan_off" class="control-button">Turn Fan OFF</button>
         </form>
     </div>
-
-    <footer>
-        © 2024 Smart IoT Project | Environment Monitor System
-    </footer>
-
+    <div style="text-align: center; font-size: 18px; margin: 20px;">
+        Fan Status: <strong style="color: {{ 'green' if fan_status == 'ON' else 'red' }}">{{ fan_status or 'Unknown' }}</strong>
+    </div>
 </body>
 </html>

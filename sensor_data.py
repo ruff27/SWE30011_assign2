@@ -7,7 +7,7 @@ arduino = serial.Serial(device, 9600)
 dbconn = None
 
 try:
-    dbconn = pymysql.connect(host="localhost", user="root", password="your_password", database="env_db")
+    dbconn = pymysql.connect(host="localhost", user="pi", password="", database="env_db")
     cursor = dbconn.cursor()
     print("Connected to database.")
     print("Connected to Arduino. Reading data...")
