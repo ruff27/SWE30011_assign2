@@ -4,8 +4,8 @@ USE env_db;
 
 CREATE TABLE sensor_data (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     temperature FLOAT NOT NULL,
-    potentiometer INT NOT NULL,
-    button_state VARCHAR(20) NOT NULL,
-    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    led_status VARCHAR(10),
+    fan_status VARCHAR(5)
 );

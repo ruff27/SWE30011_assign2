@@ -1,33 +1,30 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template
 import pymysql
-import serial
 
 app = Flask(__name__)
 
-arduino = serial.Serial('/dev/ttyACM0', 9600)
-last_command = None  # Track last fan command
+def get_latest_data():
+    try:
+        dbconn = pymysql.connect(
+            host="localhost",
+            user="pi",
+            password="",
+            database="env_db"
+        )
+        cursor = dbconn.cursor()
+        cursor.execute(
+            "SELECT temperature, led_status, fan_status, timestamp FROM sensor_log ORDER BY id DESC LIMIT 5"
+        )
+        rows = cursor.fetchall()
+        cursor.close()
+        return rows
+    except:
+        return []
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/")
 def index():
-    global last_command
-    if request.method == 'POST':
-        action = request.form['action']
-        if action == "fan_on":
-            arduino.write(b"FAN_ON\n")
-            last_command = "ON"
-            print("Sent FAN_ON to Arduino")
-        elif action == "fan_off":
-            arduino.write(b"FAN_OFF\n")
-            last_command = "OFF"
-            print("Sent FAN_OFF to Arduino")
-        return redirect(url_for('index'))
-
-    db = pymysql.connect(host="localhost", user="pi", password="", database="env_db")
-    cursor = db.cursor()
-    cursor.execute("SELECT temperature, timestamp FROM sensor_data ORDER BY timestamp DESC LIMIT 5")
-    data = cursor.fetchall()
-    db.close()
-    return render_template('index.html', data=data, fan_status=last_command)
+    data = get_latest_data()
+    return render_template("index.html", sensor_data=data)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(debug=True, host="0.0.0.0", port=8080)

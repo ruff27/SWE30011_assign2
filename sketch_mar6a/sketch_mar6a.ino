@@ -1,10 +1,9 @@
 // Pin Definitions
-const int potPin = A0;               // Potentiometer reading for fan speed
-const int tempPin = A1;              // Analog temperature sensor
+const int tempPin = A0;              // Analog temperature sensor
 const int buttonPin = 2;             // Button to start fan
-const int greenLedPin = 6;           
-const int redLedPin = 5;             
-const int fanPin = 9;                
+const int greenLedPin = 6;           // Green LED for safe temperature
+const int redLedPin = 5;             // Red LED for high temperature
+const int fanPin = 9;                // Fan control pin
 
 // Thermistor constants
 const float resistorValue = 4700.0;      // Fixed resistor value (Ω)
@@ -14,11 +13,13 @@ const float tempAlertThreshold = 25.0;   // Temperature to trigger alert LED
 
 bool remoteFanControl = false;        // Flask control flag
 bool remoteFanState = false;          // Flask fan ON/OFF state
+bool manualOverride = false;          // Flag for manual override
+bool prevButtonState = HIGH;          // To detect button toggle
+bool fanState = false;                // Current fan ON/OFF state
 
 void setup() {
   Serial.begin(9600);
   pinMode(tempPin, INPUT);
-  pinMode(potPin, INPUT);
   pinMode(buttonPin, INPUT_PULLUP);   // Button with internal pullup
   pinMode(greenLedPin, OUTPUT);
   pinMode(redLedPin, OUTPUT);
@@ -39,12 +40,15 @@ void loop() {
     }
   }
 
-  // Read button state
+  // Read button state and toggle manual override
   bool buttonPressed = digitalRead(buttonPin) == LOW;
+  if (buttonPressed && prevButtonState == HIGH) {
+    manualOverride = !manualOverride;   // Toggle override mode
+    remoteFanControl = false;           // Cancel remote control if manual override is used
+  }
+  prevButtonState = !buttonPressed ? HIGH : LOW;
 
-  // Potentiometer reading
-  int potValue = analogRead(potPin);
-  delay(300);
+  delay(3000); // Small delay for reading stability
 
   // Temperature reading using Steinhart-Hart equation
   int tempSensorValue = analogRead(tempPin);
@@ -52,40 +56,41 @@ void loop() {
   float r = (5.0 - voltage) / voltage * resistorValue;
   float temperature = 1.0 / (log(r / thermistorNominal) / beta + (1.0 / (25.0 + 273.15))) - 273.15;
 
-  // Serial Output
-  Serial.print("Temp: ");
-  Serial.print(temperature, 2);
-  Serial.print(" °C | Pot: ");
-  Serial.print(potValue);
-  Serial.print(" | Fan button: ");
-  Serial.println(buttonPressed ? "PRESSED" : "RELEASED");
-
   // LED Logic
+  String ledStatus = "";
   if (temperature >= tempAlertThreshold) {
     digitalWrite(greenLedPin, LOW);
     digitalWrite(redLedPin, HIGH);
-    delay(300);
-    digitalWrite(redLedPin, LOW);
-    delay(300);
+    ledStatus = "RED";
   } else {
     digitalWrite(redLedPin, LOW);
     digitalWrite(greenLedPin, HIGH);
-    delay(300);
-    digitalWrite(greenLedPin, LOW);
-    delay(300);
+    ledStatus = "GREEN";
   }
 
-  // Fan logic
+  // Fan Logic
   if (remoteFanControl) {
-    // Flask control
     analogWrite(fanPin, remoteFanState ? 255 : 0);
+    fanState = remoteFanState;
+  } else if (manualOverride) {
+    analogWrite(fanPin, 255); // Toggle on each override
+    fanState = true;
   } else {
-    // Button + potentiometer control
-    if (buttonPressed) {
-      int fanSpeed = map(potValue, 0, 1023, 0, 255);
-      analogWrite(fanPin, fanSpeed);
+    // Auto control by temperature
+    if (temperature >= tempAlertThreshold) {
+      analogWrite(fanPin, 255);
+      fanState = true;
     } else {
       analogWrite(fanPin, 0);
+      fanState = false;
     }
   }
+
+  // Serial Output
+  Serial.print("Temp: ");
+  Serial.print(temperature, 2);
+  Serial.print(" °C | LED: ");
+  Serial.print(ledStatus);
+  Serial.print(" | Fan: ");
+  Serial.println(fanState ? "ON" : "OFF");
 }

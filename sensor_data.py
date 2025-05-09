@@ -1,53 +1,53 @@
-import serial
+from flask import Flask, render_template, redirect, url_for
 import pymysql
+import serial
 
-device = '/dev/ttyACM0'
-arduino = serial.Serial(device, 9600)
+app = Flask(__name__)
 
-dbconn = None
-
+# Arduino serial device path
+device = '/dev/ttyACM0'  # Update if needed
 try:
-    dbconn = pymysql.connect(host="localhost", user="root", password="your_password", database="env_db")
-    cursor = dbconn.cursor()
-    print("Connected to database.")
-    print("Connected to Arduino. Reading data...")
+    arduino = serial.Serial(device, 9600, timeout=1)
+    print(f"Connected to Arduino on {device}")
+except:
+    arduino = None
+    print("Arduino not connected")
 
-    while True:
-        data = arduino.readline().decode('utf-8').strip()
-        if data:
-            print("Raw line:", data)
-            parts = data.split('|')
-            try:
-                temperature = float(parts[0].split(':')[1].replace('°C','').strip())
-                potentiometer = int(parts[1].split(':')[1].strip())
-                button_state = parts[2].split(':')[1].strip()
+def get_latest_data():
+    try:
+        dbconn = pymysql.connect(
+            host="localhost",
+            user="pi",
+            password="",
+            database="env_db"
+        )
+        cursor = dbconn.cursor()
+        cursor.execute(
+            "SELECT temperature, led_status, fan_status, timestamp FROM sensor_log ORDER BY id DESC LIMIT 5"
+        )
+        rows = cursor.fetchall()
+        cursor.close()
+        return rows
+    except Exception as e:
+        print(f"DB error: {e}")
+        return []
 
-                cursor.execute(
-                    "INSERT INTO sensor_data (temperature, potentiometer, button_state) VALUES (%s, %s, %s)",
-                    (temperature, potentiometer, button_state)
-                )
-                dbconn.commit()
-                print(f"Data inserted: {temperature}, {potentiometer}, {button_state}")
-                cursor.close()
-                cursor = dbconn.cursor()
+@app.route("/")
+def index():
+    data = get_latest_data()
+    return render_template("index.html", sensor_data=data)
 
-            except Exception as e:
-                print("Parsing error:", e)
-                continue
+@app.route("/fan/on")
+def fan_on():
+    if arduino:
+        arduino.write(b"FAN_ON\n")
+    return redirect(url_for('index'))
 
-except pymysql.MySQLError as e:
-    print(f"Database error: {e}")
+@app.route("/fan/off")
+def fan_off():
+    if arduino:
+        arduino.write(b"FAN_OFF\n")
+    return redirect(url_for('index'))
 
-except serial.SerialException as e:
-    print(f"Serial connection error: {e}")
-
-except Exception as e:
-    print(f"Unexpected error: {e}")
-
-finally:
-    if dbconn:
-        dbconn.close()
-        print("Database connection closed.")
-    if arduino.is_open:
-        arduino.close()
-        print("Serial connection closed.")
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=8080)

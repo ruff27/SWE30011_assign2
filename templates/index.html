@@ -1,96 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Environment Monitor</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            margin: 0;
-            padding: 0;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            padding: 20px 0;
-        }
-        .status {
-            text-align: center;
-            font-size: 18px;
-            margin-bottom: 20px;
-        }
-        table {
-            border-collapse: collapse;
-            width: 60%;
-            margin: 0 auto;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        th, td {
-            text-align: center;
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #4CAF50;
-            color: white;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .button-container {
-            text-align: center;
-            margin: 30px auto;
-        }
-        .control-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 14px 28px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 18px;
-            margin: 10px;
-            transition: background-color 0.3s;
-        }
-        .control-button:hover {
-            background-color: #45a049;
-        }
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: #888;
-            font-size: 14px;
-        }
-    </style>
+  <title>Smart Environment Dashboard</title>
+  <style>
+    body { font-family: Arial; background-color: #f8f9fa; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #2B7B8C; color: white; }
+  </style>
 </head>
 <body>
+  <h2>IoT Smart Environment Dashboard</h2>
+  <h2>IoT Smart Fan Dashboard</h2>
+  <div style="margin-bottom: 20px;">
+    <a href="/fan/on"><button style="padding: 10px;">Turn Fan ON</button></a>
+    <a href="/fan/off"><button style="padding: 10px;">Turn Fan OFF</button></a>
+  </div>
 
-    <h1>Environment Monitor</h1>
-
-    <div class="status">
-        Fan Status: <strong style="color: {{ 'green' if fan_status == 'ON' else 'red' }}">{{ fan_status or 'Unknown' }}</strong>
-    </div>
-
-    <table>
-        <tr>
-            <th>Temperature (°C)</th>
-            <th>Timestamp</th>
-        </tr>
-        {% for row in data %}
-        <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-
-    <div class="button-container">
-        <form action="/" method="POST">
-            <button type="submit" name="action" value="fan_on" class="control-button">Turn Fan ON</button>
-            <button type="submit" name="action" value="fan_off" class="control-button">Turn Fan OFF</button>
-        </form>
-    </div>
+  <table>
+    <tr>
+      <th>Time</th>
+      <th>Temperature (°C)</th>
+      <th>LED</th>
+      <th>Fan</th>
+    </tr>
+    {% for row in sensor_data %}
+    <tr>
+      <td>{{ row[3] }}</td>
+      <td>{{ row[0] }}</td>
+      <td>{{ row[1] }}</td>
+      <td>{{ row[2] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
 </body>
 </html>
