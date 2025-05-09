@@ -3,38 +3,24 @@ import pymysql
 
 app = Flask(__name__)
 
-dbconn = pymysql.connect(
-    host="localhost",
-    user="pi",
-    password="",
-    database="env_monitor_db"
-)
-
-@app.route("/", methods=["GET", "POST"])
+@app.route('/')
 def index():
-    threshold = None
-    latest_data = {"potValue": "N/A", "motion": "N/A", "temperature": "N/A", "time": "N/A"}
+    db = pymysql.connect(host="localhost", user="pi", password="", database="env_db")
+    cursor = db.cursor()
+    # Get last 10 records
+    cursor.execute("SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 10")
+    data = cursor.fetchall()
+    db.close()
+    return render_template('index.html', data=data)
 
-    if request.method == "POST":
-        threshold = request.form.get("threshold")  # Optional logic
-        print("Threshold submitted:", threshold)
-
-    try:
-        cursor = dbconn.cursor()
-        cursor.execute("SELECT potValue, motionDetected, temperature, created_at FROM environment_log ORDER BY id DESC LIMIT 1")
-        row = cursor.fetchone()
-        if row:
-            latest_data = {
-                "potValue": row[0],
-                "motion": "Yes" if row[1] == 1 else "No",
-                "temperature": row[2],
-                "time": row[3]
-            }
-        cursor.close()
-    except Exception as e:
-        print(f"DB error: {e}")
-
-    return render_template("index.html", data=latest_data, threshold=threshold)
+@app.route('/control', methods=['POST'])
+def control():
+    action = request.form['action']
+    if action == "fan_on":
+        print("Fan ON command received (simulated)")
+    elif action == "fan_off":
+        print("Fan OFF command received (simulated)")
+    return "Command sent. <a href='/'>Return to Dashboard</a>"
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8080)
+    app.run(host='0.0.0.0', port=5000, debug=True)
